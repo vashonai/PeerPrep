@@ -1,122 +1,103 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter } from 'react-router'
+import { PERMISSIONS } from './config/roles'
+import { AuthProvider } from './context/AuthProvider'
+import { ToastProvider } from './context/ToastProvider'
+import { GuestOnly, RequireAuth, RequirePermission } from './features/auth/RouteGuards'
+import { AppLayout } from './layouts/AppLayout'
+import { AuthLayout } from './layouts/AuthLayout'
+import { AdaptiveLayout, PublicLayout } from './layouts/PublicLayout'
+import { DashboardPage } from './pages/DashboardPage'
+import { ExplorePage } from './pages/ExplorePage'
+import { LandingPage } from './pages/LandingPage'
+import { LoginPage } from './pages/LoginPage'
+import { NotFoundPage } from './pages/NotFoundPage'
+import { QuestionDetailPage } from './pages/QuestionDetailPage'
+import { PageSpinner } from './components/ui/Spinner'
+import { RegisterPage } from './pages/RegisterPage'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function Root() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <ToastProvider>
+      <AuthProvider>
+        <ScrollRestoration />
+        <Outlet />
+      </AuthProvider>
+    </ToastProvider>
   )
 }
 
-export default App
+const P = PERMISSIONS
+
+// Role-specific pages load on demand to keep the initial bundle small.
+const page = (load, name) => () => load().then((module) => ({ Component: module[name] }))
+const QuestionForm = page(() => import('./pages/QuestionFormPage'), 'QuestionFormPage')
+const MyContributions = page(() => import('./pages/MyContributionsPage'), 'MyContributionsPage')
+const Review = page(() => import('./pages/ReviewPage'), 'ReviewPage')
+const Admin = page(() => import('./pages/AdminPage'), 'AdminPage')
+
+const router = createBrowserRouter([
+  {
+    element: <Root />,
+    hydrateFallbackElement: <PageSpinner />,
+    children: [
+      { element: <PublicLayout />, children: [{ index: true, element: <LandingPage /> }] },
+      {
+        element: <GuestOnly />,
+        children: [
+          {
+            element: <AuthLayout />,
+            children: [
+              { path: 'login', element: <LoginPage /> },
+              { path: 'register', element: <RegisterPage /> },
+            ],
+          },
+        ],
+      },
+      // Browsing is public; signed-in users see it inside the app shell.
+      {
+        element: <AdaptiveLayout />,
+        children: [
+          { path: 'questions', element: <ExplorePage /> },
+          { path: 'questions/:id', element: <QuestionDetailPage /> },
+        ],
+      },
+      {
+        element: <RequireAuth />,
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              {
+                element: <RequirePermission permission={P.QUESTION_CREATE} resource="Student dashboard" />,
+                children: [
+                  { path: 'dashboard', element: <DashboardPage /> },
+                  { path: 'questions/new', lazy: QuestionForm },
+                ],
+              },
+              {
+                element: <RequirePermission permission={P.CONTENT_EDIT_OWN} resource="My contributions" />,
+                children: [
+                  { path: 'questions/:id/edit', lazy: QuestionForm },
+                  { path: 'my-contributions', lazy: MyContributions },
+                ],
+              },
+              {
+                element: <RequirePermission permission={P.ANSWER_VERIFY} resource="Verification dashboard" />,
+                children: [{ path: 'review', lazy: Review }],
+              },
+              {
+                element: <RequirePermission permission={P.CONTENT_MODERATE} resource="Administration dashboard" />,
+                children: [{ path: 'admin', lazy: Admin }],
+              },
+            ],
+          },
+        ],
+      },
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
+])
+
+export default function App() {
+  return <RouterProvider router={router} />
+}
