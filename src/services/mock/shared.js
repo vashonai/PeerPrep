@@ -66,7 +66,7 @@ export function sanitizeAttachments(drafts = [], user, existing = []) {
       draft.size <= ATTACHMENT_RULES.maxBytes &&
       typeof draft.url === 'string' &&
       draft.url.startsWith(`data:${draft.mimeType};base64,`)
-    if (!valid) throw new ApiError('VALIDATION', `"${draft.fileName}" was rejected. Only PDF, JPG and PNG files up to 2 MB are allowed.`, { attachments: 'One or more attachments were rejected.' })
+    if (!valid) throw new ApiError('VALIDATION', `"${draft.fileName}" was rejected. Only PDF, JPG and PNG files up to 5 MB are allowed.`, { attachments: 'One or more attachments were rejected.' })
     return {
       id: newId('att'),
       fileName: String(draft.fileName).slice(0, 120),

@@ -86,3 +86,8 @@ export async function getSessionUser() {
 export function recordActivity() {
   touchSession()
 }
+
+/** The mock server has no external sign-in events. */
+export function onAuthChange() {
+  return () => {}
+}

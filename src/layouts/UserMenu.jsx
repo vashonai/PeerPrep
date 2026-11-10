@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { RoleBadge } from '../components/StatusBadges'
 import { Avatar } from '../components/ui/Avatar'
 import { ConfirmDialog } from '../components/ui/Modal'
-import { DEMO_MODE } from '../config/env'
+import { CAN_RESET_DEMO_DATA } from '../config/env'
 import { PERMISSIONS, ROLE_LABELS, can } from '../config/roles'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
@@ -90,7 +90,7 @@ export function UserMenu() {
               <FolderOpen className="size-4 text-slate-400" aria-hidden /> My contributions
             </Link>
           )}
-          {DEMO_MODE && (
+          {CAN_RESET_DEMO_DATA && (
             <button
               role="menuitem"
               type="button"

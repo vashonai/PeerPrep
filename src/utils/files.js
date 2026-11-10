@@ -51,7 +51,11 @@ function readAsDataUrl(file) {
   })
 }
 
-/** Converts a validated File into the attachment payload sent to the service layer. */
+/**
+ * Converts a validated File into the attachment payload sent to the service
+ * layer. `file` is uploaded by the Supabase services; `url` is a preview (and
+ * the stored copy in the offline prototype).
+ */
 export async function toAttachmentDraft(file) {
   return {
     id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -59,5 +63,8 @@ export async function toAttachmentDraft(file) {
     mimeType: MIME_BY_EXTENSION[fileExtension(file.name)],
     size: file.size,
     url: await readAsDataUrl(file),
+    file,
   }
 }
+
+export const isDraftAttachment = (attachment) => attachment.file instanceof Blob

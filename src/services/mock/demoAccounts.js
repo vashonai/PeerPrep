@@ -1,4 +1,4 @@
-import { ROLES } from '../../config/roles'
+import { ROLES } from '../../config/roles.js'
 
 /**
  * PUBLIC demo credentials. They exist only in demo mode, are published on the

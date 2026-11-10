@@ -15,9 +15,16 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate()
 
   useEffect(() => {
-    authApi.getSessionUser().then((sessionUser) => {
-      setUser(sessionUser)
-      setReady(true)
+    authApi
+      .getSessionUser()
+      .catch(() => null)
+      .then((sessionUser) => {
+        setUser(sessionUser)
+        setReady(true)
+      })
+    // Sign-ins that happen outside this provider, such as email confirmation links.
+    return authApi.onAuthChange(() => {
+      authApi.getSessionUser().then(setUser, () => {})
     })
   }, [])
 
@@ -38,7 +45,8 @@ export function AuthProvider({ children }) {
     }
     const check = async () => {
       if (document.visibilityState === 'hidden') return
-      const current = await authApi.getSessionUser()
+      const current = await authApi.getSessionUser().catch(() => undefined)
+      if (current === undefined) return // Offline: keep the session until the server is reachable.
       if (!current) {
         setUser(null)
         toast.info('You have been signed out', 'Your session ended after 60 minutes of inactivity.')
@@ -69,9 +77,10 @@ export function AuthProvider({ children }) {
     return signedIn
   }, [])
 
+  /** Resolves to the new user, or `{ needsConfirmation, email }` when email confirmation is required. */
   const register = useCallback(async (input) => {
     const created = await authApi.register(input)
-    setUser(created)
+    if (!created.needsConfirmation) setUser(created)
     return created
   }, [])
 

@@ -130,8 +130,9 @@ export const LOG_ACTION_LABELS = {
 export const ATTACHMENT_RULES = Object.freeze({
   mimeTypes: ['application/pdf', 'image/png', 'image/jpeg'],
   extensions: ['pdf', 'png', 'jpg', 'jpeg'],
-  // Kept small because the prototype stores files in localStorage.
-  maxBytes: 2 * 1024 * 1024,
+  // Matches the Supabase bucket limit. The offline prototype stores files in
+  // localStorage, so large files there may hit the browser's storage quota.
+  maxBytes: 5 * 1024 * 1024,
   maxFiles: 3,
 })
 

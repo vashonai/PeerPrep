@@ -1,5 +1,5 @@
-import { ROLES } from '../config/roles'
-import { LOG_ACTIONS, VERIFICATION_STATUS as VS } from './models'
+import { ROLES } from '../config/roles.js'
+import { LOG_ACTIONS, VERIFICATION_STATUS as VS } from './models.js'
 
 /**
  * Seed data for the local prototype. Timestamps are generated relative to the

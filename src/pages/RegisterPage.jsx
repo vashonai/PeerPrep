@@ -1,6 +1,7 @@
-import { Info, Mail } from 'lucide-react'
+import { Info, Mail, MailCheck } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Button } from '../components/ui/Button'
+import { Button, ButtonLink } from '../components/ui/Button'
 import { FormAlert, FormField, Input, PasswordInput } from '../components/ui/Form'
 import { useAuth } from '../hooks/useAuth'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -39,11 +40,35 @@ export function RegisterPage() {
   const navigate = useNavigate()
   const form = useForm({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '' }, validateRegistration)
 
+  const [pendingEmail, setPendingEmail] = useState('')
+
   const onSubmit = form.handleSubmit(async (values) => {
-    const user = await register(values)
-    toast.success(`Welcome to PeerPrep, ${user.firstName}!`, 'Your student account is ready.')
+    const result = await register(values)
+    if (result.needsConfirmation) {
+      setPendingEmail(result.email)
+      return
+    }
+    toast.success(`Welcome to PeerPrep, ${result.firstName}!`, 'Your student account is ready.')
     navigate('/dashboard', { replace: true })
   })
+
+  if (pendingEmail) {
+    return (
+      <div className="animate-fade-in text-center">
+        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+          <MailCheck className="size-7" aria-hidden />
+        </span>
+        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900">Check your inbox</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          We sent a confirmation link to <span className="font-medium text-slate-800">{pendingEmail}</span>. Open it to activate your account, then sign in.
+        </p>
+        <p className="mt-4 text-xs text-slate-400">Can’t find it? Check your spam folder. If this address already has an account, no new email is sent.</p>
+        <ButtonLink to="/login" variant="secondary" className="mt-8">
+          Go to sign in
+        </ButtonLink>
+      </div>
+    )
+  }
 
   return (
     <div className="animate-fade-in">

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { Logo } from '../components/Logo'
 import { ButtonLink } from '../components/ui/Button'
-import { DEMO_MODE } from '../config/env'
+import { DATA_SOURCE, DEMO_MODE } from '../config/env'
 import { PERMISSIONS, can, homePathFor } from '../config/roles'
 import { isNavItemActive, navigationFor } from '../features/auth/navigation'
 import { useAuth } from '../hooks/useAuth'
@@ -45,13 +45,20 @@ function SidebarNav({ user, pathname, onNavigate }) {
 }
 
 function DemoNotice() {
+  const { user } = useAuth()
   if (!DEMO_MODE) return null
+  const offline = DATA_SOURCE === 'mock'
+  if (!offline && !user?.isDemo) return null
   return (
     <div className="m-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
       <p className="flex items-center gap-1.5 font-semibold text-slate-700">
-        <Info className="size-3.5 text-brand-600" aria-hidden /> Demo mode
+        <Info className="size-3.5 text-brand-600" aria-hidden /> {offline ? 'Offline demo' : 'Demo account'}
       </p>
-      <p className="mt-1">Data is stored in this browser only. Role checks here are for demonstration, not production security.</p>
+      <p className="mt-1">
+        {offline
+          ? 'Data is stored in this browser only. Role checks here are for demonstration, not production security.'
+          : 'You’re signed in to a public demo account. Anything you post is visible to everyone using PeerPrep.'}
+      </p>
     </div>
   )
 }
