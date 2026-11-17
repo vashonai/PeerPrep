@@ -7,7 +7,7 @@ import { authorize, forbid, latency, notFound, requireUser } from './server'
 import { questionSummary, serializeAnswer, serializeVerification } from './shared'
 
 /**
- * Answers for reviewers. `pending` lists unverified answers oldest first;
+ * Answers for reviewers. `pending` lists unverified answers newest first;
  * `reviewed` lists verified answers, most recently decided first. A reviewer's
  * own answers never appear in their queue.
  */
@@ -29,7 +29,7 @@ export async function listVerificationQueue({ status = 'pending', courseId = '',
       const text = `${a.question.title} ${a.content}`.toLowerCase()
       return tokens.every((t) => text.includes(t))
     })
-    .sort((a, b) => (pending ? a.createdAt.localeCompare(b.createdAt) : b.verifiedAt.localeCompare(a.verifiedAt)))
+    .sort((a, b) => (pending ? b.createdAt.localeCompare(a.createdAt) : b.verifiedAt.localeCompare(a.verifiedAt)))
 }
 
 /**

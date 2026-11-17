@@ -7,7 +7,7 @@ import { authorize, isUuid, mapAnswer, notFound, requireUser, rpc, unwrap } from
 const safeTerm = (q) => q.replace(/[^\p{L}\p{N}\s'-]+/gu, ' ').trim()
 
 /**
- * `pending`: unverified answers, oldest first. `reviewed`: verified answers,
+ * `pending`: unverified answers, newest first. `reviewed`: verified answers,
  * most recent decision first. A reviewer's own answers are excluded.
  */
 export async function listVerificationQueue({ status = 'pending', courseId = '', q = '' } = {}) {
@@ -16,7 +16,7 @@ export async function listVerificationQueue({ status = 'pending', courseId = '',
 
   let query = supabase().from('answer_feed').select('*').limit(100)
   query = status === 'pending'
-    ? query.eq('verification_status', 'Unverified').order('created_at', { ascending: true })
+    ? query.eq('verification_status', 'Unverified').order('created_at', { ascending: false })
     : query.neq('verification_status', 'Unverified').order('verified_at', { ascending: false })
   if (courseId && isUuid(courseId)) query = query.eq('course_id', courseId)
   const term = safeTerm(q)
