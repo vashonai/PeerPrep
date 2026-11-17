@@ -14,7 +14,7 @@ export function LogoMark({ className }) {
 export function Logo({ to = '/', className, inverted = false }) {
   return (
     <Link to={to} className={cx('inline-flex items-center gap-2.5 rounded-lg', className)} aria-label="PeerPrep home">
-      <LogoMark />
+      <img src="/favicon.svg" alt="" className="size-8" />
       <span className={cx('text-lg font-semibold tracking-tight', inverted ? 'text-white' : 'text-slate-900')}>
         Peer<span className={inverted ? 'text-teal-300' : 'text-brand-600'}>Prep</span>
       </span>
